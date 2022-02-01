@@ -14,35 +14,30 @@ def cc(key):
 
     return inner
 
+class AdvancedKeys():
+    BRIGHTNESS_DECREMENT = cc(macropad.ConsumerControlCode.BRIGHTNESS_DECREMENT)
+    BRIGHTNESS_INCREMENT = cc(macropad.ConsumerControlCode.BRIGHTNESS_INCREMENT)
 
-fKeyMap = {
-    "\\RECORD":
-    cc(macropad.ConsumerControlCode.RECORD),
-    "\\FAST_FORWARD":
-    cc(macropad.ConsumerControlCode.FAST_FORWARD),
-    "\\REWIND":
-    cc(macropad.ConsumerControlCode.REWIND),
-    "\\SCAN_NEXT_TRACK":
-    cc(macropad.ConsumerControlCode.SCAN_NEXT_TRACK),
-    "\\SCAN_PREVIOUS_TRACK":
-    cc(macropad.ConsumerControlCode.SCAN_PREVIOUS_TRACK),
-    "\\STOP":
-    cc(macropad.ConsumerControlCode.STOP),
-    "\\EJECT":
-    cc(macropad.ConsumerControlCode.EJECT),
-    "\\PLAY_PAUSE":
-    cc(macropad.ConsumerControlCode.PLAY_PAUSE),
-    "\\MUTE":
-    cc(macropad.ConsumerControlCode.MUTE),
-    "\\VOLUME_DECREMENT":
-    cc(macropad.ConsumerControlCode.VOLUME_DECREMENT),
-    "\\VOLUME_INCREMENT":
-    cc(macropad.ConsumerControlCode.VOLUME_INCREMENT),
-    "\\BRIGHTNESS_DECREMENT":
-    cc(macropad.ConsumerControlCode.BRIGHTNESS_DECREMENT),
-    "\\BRIGHTNESS_INCREMENT":
-    cc(macropad.ConsumerControlCode.BRIGHTNESS_INCREMENT),
-}
+    RECORD = cc(macropad.ConsumerControlCode.RECORD)
+
+    REWIND = cc(macropad.ConsumerControlCode.REWIND)
+    PLAY_PAUSE = cc(macropad.ConsumerControlCode.PLAY_PAUSE)
+    FAST_FORWARD = cc(macropad.ConsumerControlCode.FAST_FORWARD)
+
+    STOP = cc(macropad.ConsumerControlCode.STOP)
+    SCAN_NEXT_TRACK = cc(macropad.ConsumerControlCode.SCAN_NEXT_TRACK)
+    SCAN_PREVIOUS_TRACK = cc(macropad.ConsumerControlCode.SCAN_PREVIOUS_TRACK)
+    
+    
+    MUTE = cc(macropad.ConsumerControlCode.MUTE)
+    VOLUME_DECREMENT = cc(macropad.ConsumerControlCode.VOLUME_DECREMENT)
+    VOLUME_INCREMENT = cc(macropad.ConsumerControlCode.VOLUME_INCREMENT)
+    
+    EJECT = cc(macropad.ConsumerControlCode.EJECT)
+
+
+
+
 
 
 def colorwheel(theta, saturation=1, value=1):
@@ -80,9 +75,9 @@ mappings = [
         "title":
         "Media",
         "keys": [
-            "\\MUTE",
-            "\\VOLUME_DECREMENT",
-            "\\VOLUME_INCREMENT",
+            AdvancedKeys.MUTE,
+            AdvancedKeys.VOLUME_DECREMENT,
+            AdvancedKeys.VOLUME_INCREMENT,
             macropad.Keycode.ESCAPE,
             "",
             [
@@ -95,9 +90,9 @@ mappings = [
             "",
             "",
             "",
-            '\\REWIND',
-            '\\PLAY_PAUSE',
-            '\\FAST_FORWARD',
+            AdvancedKeys.REWIND,
+            AdvancedKeys.PLAY_PAUSE,
+            AdvancedKeys.FAST_FORWARD,
         ],
         "pixels": [
             (255, 0, 0),
@@ -258,12 +253,14 @@ for key_data in mappings:
 
 def evalKey(key, hold=False):
     try:
-        if isinstance(key, list):
+        if callable(key):
+            key()
+        elif isinstance(key, list):
             for k in key:
                 evalKey(k, hold=True)
             macropad.keyboard.release_all()
-        elif key in fKeyMap:
-            fKeyMap[key]()
+        # elif key in fKeyMap:
+        #     fKeyMap[key]()
         elif isinstance(key, str):
             if key != '':
                 macropad.keyboard_layout.write(key)
