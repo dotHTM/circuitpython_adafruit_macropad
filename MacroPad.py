@@ -52,7 +52,7 @@ class MacroPad(adafruit_macropad.MacroPad):
 
     def alive(self):
         print("I'm alive!")
-        self.singSong()
+        # self.singSong()
         if self.pixels != None:
             for i in range(12):
                 self.pixels[i] = colorwheel(int(i / 12 * 360))
