@@ -3,7 +3,6 @@ import math
 from rainbowio import colorwheel
 import adafruit_macropad
 
-
 class Notes():
     A = 440
     As = A * 1.06
@@ -101,3 +100,7 @@ class MacroPad(adafruit_macropad.MacroPad):
 
         return data
         pass
+
+
+thisMacropad = MacroPad()
+

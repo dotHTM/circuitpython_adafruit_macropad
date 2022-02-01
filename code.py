@@ -1,316 +1,30 @@
+
+from debugHelper import thisDebugPrinter, debugAnounce
+# thisDebugPrinter.enabled = True
+
 import time
-from colorsys import hsv_to_rgb
-from MacroPad import MacroPad
 
-macropad = MacroPad()
+from MacroPad import thisMacropad as macropad
+from settings import mappings, Settings
 
-from adafruit_hid.keycode import Keycode as kc
+from settings.helpers import FnKeyMap
 
-
-def cc(key):
-
-    def inner():
-        macropad.consumer_control.send(key)
-
-    return inner
+from settings.Colors import colorwheel, mixColors, Colors
 
 
-def noop(*args, **kwargs):
-    pass
+macropad.update()
+
+x_position = 0 
+y_position = 0 
 
 
-class KeyPressObj():
-    keyDown = noop
-    keyUp = noop
 
-    def __init__(self, keycodeList: list[kc]):
-
-        def onDown():
-            for k in keycodeList:
-                macropad.keyboard.press(k)
-
-        def onUp():
-            for k in reversed(keycodeList):
-                macropad.keyboard.release(k)
-
-        self.keyDown = onDown
-        self.keyUp = onUp
-
-    def __repr__(self) -> str:
-        return "<KeyPressObj>"
+import board
+from adafruit_bitmap_font import bitmap_font
+from adafruit_display_text import label
 
 
-class FnKeyMap():
-
-    def __init__(self, arg):
-        super(FnKeyMap, self).__init__()
-        self.keyDown = noop
-        self.keyUp = noop
-        if isinstance(arg, KeyPressObj):
-            self.keyDown = arg.keyDown
-            self.keyUp = arg.keyUp
-
-    def onKeyDown(self, fn):
-        if callable(fn):
-            self.keyDown = fn
-
-    def onKeyUp(self, fn):
-        if callable(fn):
-            self.keyUp = fn
-
-
-def keyPress(*keycodeList):
-    return FnKeyMap(KeyPressObj(keycodeList))
-
-
-# thisKey = keyPress(kc.SHIFT, kc.THREE)
-
-# time.sleep(1)
-
-# for _ in range(4):
-#     thisKey.keyDown()
-#     time.sleep(.1)
-#     thisKey.keyUp()
-#     time.sleep(.1)
-
-# time.sleep(2)
-
-
-class SpecialKeys():
-    BRIGHTNESS_DECREMENT = cc(
-        macropad.ConsumerControlCode.BRIGHTNESS_DECREMENT)
-    BRIGHTNESS_INCREMENT = cc(
-        macropad.ConsumerControlCode.BRIGHTNESS_INCREMENT)
-
-    RECORD = cc(macropad.ConsumerControlCode.RECORD)
-
-    REWIND = cc(macropad.ConsumerControlCode.REWIND)
-    PLAY_PAUSE = cc(macropad.ConsumerControlCode.PLAY_PAUSE)
-    FAST_FORWARD = cc(macropad.ConsumerControlCode.FAST_FORWARD)
-
-    STOP = cc(macropad.ConsumerControlCode.STOP)
-    SCAN_NEXT_TRACK = cc(macropad.ConsumerControlCode.SCAN_NEXT_TRACK)
-    SCAN_PREVIOUS_TRACK = cc(macropad.ConsumerControlCode.SCAN_PREVIOUS_TRACK)
-
-    MUTE = cc(macropad.ConsumerControlCode.MUTE)
-    VOLUME_DECREMENT = cc(macropad.ConsumerControlCode.VOLUME_DECREMENT)
-    VOLUME_INCREMENT = cc(macropad.ConsumerControlCode.VOLUME_INCREMENT)
-
-    EJECT = cc(macropad.ConsumerControlCode.EJECT)
-
-
-def colorwheel(theta, saturation=1, value=1):
-    return hsv_to_rgb(theta / 360, saturation, value)
-
-
-def mixColors(a, b):
-    c = []
-    for i in range(3):
-        c.append(int((a[i] + b[i]) / 2))
-    return tuple(c)
-
-
-class Colors():
-    white = (255, 255, 255)
-    lightGrey = (196, 196, 196)
-    grey = (128, 128, 128)
-    darkGrey = (64, 64, 64)
-    lightBlack = (10, 10, 10)
-    black = (0, 0, 0)
-
-    red = (255, 0, 0)
-    green = (0, 255, 0)
-    blue = (0, 0, 255)
-
-    yellow = (255, 255, 0)
-    orange = (255, 128, 0)
-
-
-def consumer_control_key(key_int):
-    return key_int
-
-
-mappings = [
-    {
-        "title":
-        "Media",
-        "keys": [
-            SpecialKeys.MUTE,
-            SpecialKeys.VOLUME_DECREMENT,
-            SpecialKeys.VOLUME_INCREMENT,
-            keyPress(kc.ESCAPE),
-            keyPress(kc.UP_ARROW),
-            keyPress(
-                kc.CONTROL,
-                kc.SHIFT,
-                kc.OPTION,
-                kc.COMMAND,
-                kc.H,
-            ),
-            keyPress(kc.LEFT_ARROW),
-            keyPress(kc.DOWN_ARROW),
-            keyPress(kc.RIGHT_ARROW),
-            SpecialKeys.SCAN_PREVIOUS_TRACK,
-            SpecialKeys.PLAY_PAUSE,
-            SpecialKeys.SCAN_NEXT_TRACK,
-        ],
-        "pixels": [
-            (255, 0, 0),
-            (255, 255, 0),
-            (0, 255, 0),
-            Colors.orange,
-            Colors.lightBlack,
-            Colors.yellow,
-            Colors.lightBlack,
-            Colors.lightBlack,
-            Colors.lightBlack,
-            colorwheel(0, 0.75, 0.5),
-            colorwheel(120, 0.75, 0.5),
-            colorwheel(240, 0.75, 0.5),
-        ]
-    },
-    {
-        "title":
-        "Numbers",
-        "keys": [
-            keyPress(kc.KEYPAD_ONE),
-            keyPress(kc.KEYPAD_TWO),
-            keyPress(kc.KEYPAD_THREE),
-            keyPress(kc.KEYPAD_FOUR),
-            keyPress(kc.KEYPAD_FIVE),
-            keyPress(kc.KEYPAD_SIX),
-            keyPress(kc.KEYPAD_SEVEN),
-            keyPress(kc.KEYPAD_EIGHT),
-            keyPress(kc.KEYPAD_NINE),
-            keyPress(kc.KEYPAD_PERIOD),
-            keyPress(kc.KEYPAD_ZERO),
-            keyPress(kc.KEYPAD_ENTER),
-        ],
-        "pixels": [
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.orange,
-            Colors.white,
-            Colors.red,
-        ],
-    },
-    {
-        "title":
-        "F-Keys",
-        "keys": [
-            keyPress(kc.F1),
-            keyPress(kc.F2),
-            keyPress(kc.F3),
-            keyPress(kc.F4),
-            keyPress(kc.F5),
-            keyPress(kc.F6),
-            keyPress(kc.F7),
-            keyPress(kc.F8),
-            keyPress(kc.F9),
-            keyPress(kc.F10),
-            keyPress(kc.F11),
-            keyPress(kc.F12),
-        ],
-        "baseColor":
-        Colors.darkGrey,
-    },
-    {
-        "title":
-        "F-Upper",
-        "keys": [
-            keyPress(kc.F13),
-            keyPress(kc.F14),
-            keyPress(kc.F15),
-            keyPress(kc.F16),
-            keyPress(kc.F17),
-            keyPress(kc.F18),
-            keyPress(kc.F19),
-            keyPress(kc.F20),
-            keyPress(kc.F21),
-            keyPress(kc.F22),
-            keyPress(kc.F23),
-            keyPress(kc.F24),
-        ],
-        "baseColor":
-        Colors.grey,
-    },
-    {
-        "title":
-        "1337",
-        "keys": [
-            keyPress(kc.SHIFT, kc.F),
-            keyPress(kc.A),
-            keyPress(kc.Q),
-            keyPress(kc.TAB),
-            keyPress(kc.S),
-            keyPress(kc.W),
-            keyPress(kc.RETURN),
-            keyPress(kc.D),
-            keyPress(kc.E),
-            keyPress(kc.SPACEBAR),
-            keyPress(kc.F),
-            keyPress(kc.R),
-        ],
-        "pixels": [
-            Colors.blue,  # SHIFT, F
-            Colors.white,  # A
-            Colors.lightBlack,  # Q
-            
-            Colors.yellow,  # TAB
-            Colors.white,  # S
-            Colors.white,  # W
-            
-            Colors.orange,  # SPACEBAR
-            Colors.white,  # D
-            Colors.lightBlack,  # E
-            
-            Colors.orange,  # SPACEBAR
-            Colors.red,  # F
-            Colors.green,  # R
-        ],
-    },
-    {
-        "keys": [],
-        "pixels": [],
-    },
-]
-
-for key_data in mappings:
-
-    if not "keys" in key_data:
-        key_data["keys"] = []
-    if len(key_data["keys"]) < 12:
-        for _ in range(12 - len(key_data["keys"])):
-            key_data["keys"].append('')
-
-    if not "pixels" in key_data:
-        key_data["pixels"] = []
-    if len(key_data["pixels"]) < 12:
-        ki = len(key_data["pixels"])
-        for _ in range(12 - len(key_data["pixels"])):
-            key_data["pixels"].append(None)
-            ki += 1
-
-    for ki in range(12):
-        if key_data["pixels"][ki] == None:
-            if key_data["keys"][ki] == '':
-                key_data["pixels"][ki] = Colors.black
-            else:
-                if "baseColor" in key_data:
-                    key_data["pixels"][ki] = mixColors(
-                        colorwheel(int(ki / 12 * 360)), key_data["baseColor"])
-                else:
-                    key_data["pixels"][ki] = mixColors(
-                        colorwheel(int(ki / 12 * 360)), Colors.black)
-
-
+@debugAnounce
 def evalKeyPressObj(key, hold=False):
     try:
         if isinstance(key, FnKeyMap):
@@ -335,7 +49,7 @@ def evalKeyPressObj(key, hold=False):
     except Exception as e:
         print(str(e))
 
-
+@debugAnounce
 def evalKeyRelease(key, hold=False):
     try:
         if isinstance(key, FnKeyMap):
@@ -343,17 +57,21 @@ def evalKeyRelease(key, hold=False):
     except Exception as e:
         print(str(e))
 
-
-def updateDisplay(index):
+@debugAnounce
+def updateDisplay(index, title, labels):
     keyData = mappings[index]
     pageTitle = f"Page {index}"
     if 'title' in keyData:
         pageTitle = keyData["title"]
-    print(f"{pageTitle}")
-    print(f"{''}")
-    print(f"{''}")
-    print(f"{''}")
-
+    
+    title.text = f"{pageTitle:^22}"
+    
+    for i in range(12):
+        l = f"KEY{i}"
+        if 'desc' in keyData and i < len(keyData['desc']):
+            l = keyData['desc'][i]
+        labels[i].text = f"{l:^7}"
+    
     if 'pixels' in keyData:
         ki = 0
         for rgbColor in keyData['pixels']:
@@ -377,6 +95,34 @@ page_changed = True
 
 key_pressed_stack = []
 
+import displayio
+import terminalio
+from adafruit_displayio_layout.layouts.grid_layout import GridLayout
+from adafruit_display_text import bitmap_label as label
+
+
+main_group = displayio.Group()
+macropad.display.show(main_group)
+title = label.Label(
+    y=4,
+    font=terminalio.FONT,
+    color=0x0,
+    text=f"{'Hello!':^22}",
+    background_color=0xFFFFFF,
+)
+layout = GridLayout(x=0, y=10, width=128, height=54, grid_size=(3, 4), cell_padding=1)
+labels = []
+for _ in range(12):
+    labels.append(label.Label(terminalio.FONT, text=""))
+
+for index in range(12):
+    x = index % 3
+    y = index // 3
+    layout.add_content(labels[index], grid_position=(x, y), cell_size=(1, 1))
+
+main_group.append(title)
+main_group.append(layout)
+
 while True:
     time.sleep(0.01)
     macropad.update()
@@ -394,7 +140,7 @@ while True:
 
     if page_changed or macropad.encoder_direction != 0:
         page_changed = False
-        updateDisplay(mapping_index)
+        updateDisplay(mapping_index, title, labels)
 
     kmap = mappings[mapping_index]
     keys = kmap['keys']
@@ -405,10 +151,13 @@ while True:
         if key_event.pressed:
             # Append pressed key to the end of the stack
             key_pressed_stack.append(key_event.key_number)
-            # print(key_event.key_number, "v")
             evalKeyPressObj(keys[key_event.key_number])
+            labels[key_event.key_number].color = 0x0
+            labels[key_event.key_number].background_color = 0xFFFFFF
         else:
             # Remove released key from the stack
             key_pressed_stack.remove(key_event.key_number)
-            # print(key_event.key_number,"^")
             evalKeyRelease(keys[key_event.key_number])
+            # labels[key_event.key_number].text = ""
+            labels[key_event.key_number].color = 0xFFFFFF
+            labels[key_event.key_number].background_color = 0x0
