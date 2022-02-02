@@ -1,7 +1,5 @@
 
 import storage
-
-
 from MacroPad import thisMacropad as macropad
 
 
@@ -10,10 +8,9 @@ from MacroPad import thisMacropad as macropad
 
 
 def cc(key):
-
     def inner():
-        macropad.consumer_control.send(key)
-
+        if macropad.hostConnected():
+            macropad.consumer_control.send(key)
     return inner
 
 
@@ -45,14 +42,15 @@ class keyPress(FnKeyMap):
     
     def __init__(self, *keycodeList):
         super(keyPress, self).__init__()
-        def onDown():
-            for k in keycodeList:
-                macropad.keyboard.press(k)
-        def onUp():
-            for k in reversed(keycodeList):
-                macropad.keyboard.release(k)        
-        self.onKeyDown(onDown)
-        self.onKeyUp(onUp)
+        if macropad.hostConnected():    
+            def onDown():
+                for k in keycodeList:
+                    macropad.keyboard.press(k)
+            def onUp():
+                for k in reversed(keycodeList):
+                    macropad.keyboard.release(k)        
+            self.onKeyDown(onDown)
+            self.onKeyUp(onUp)
 
     def __repr__(self) -> str:
         return "<KeyPressObj>"
@@ -96,5 +94,35 @@ class ResetBoot(FnKeyMap):
                 print("To Reset,\nPress Again.")
         self.onKeyDown(resetFn)
 
+class ToneKeeper():
+    toneStack = []
 
-
+class TonePlayer(FnKeyMap):
+    def __init__(self, freq) -> None:
+        super(TonePlayer, self).__init__()
+        def start():
+                ## append to the end of the stack
+                ToneKeeper.toneStack.append(freq)
+                ## stop whatever was playing before
+                macropad.stop_tone()
+                ## start playing our freq
+                macropad.start_tone(freq)
+                print(ToneKeeper.toneStack)
+        def stop():
+                ## if we're the bottom freq, stop playing
+                if 0 < len(ToneKeeper.toneStack) and ToneKeeper.toneStack[-1] == freq:
+                    macropad.stop_tone()
+                ## drop our freq
+                while freq in ToneKeeper.toneStack:
+                    ToneKeeper.toneStack.remove(freq)
+                ## if still frequencies on the stack, play the last one
+                if 0 < len(ToneKeeper.toneStack):
+                    macropad.start_tone(ToneKeeper.toneStack[-1])
+                print(ToneKeeper.toneStack)
+                
+            
+            # ToneKeeper.toneStack.append(freq)
+        
+        self.onKeyDown(start)
+        self.onKeyUp(stop)
+        

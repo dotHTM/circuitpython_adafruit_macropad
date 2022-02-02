@@ -1,4 +1,6 @@
 
+
+
 from debugHelper import thisDebugPrinter, debugAnounce
 # thisDebugPrinter.enabled = True
 
@@ -67,7 +69,7 @@ def updateDisplay(index, title, labels):
     title.text = f"{pageTitle:^22}"
     
     for i in range(12):
-        l = f"KEY{i}"
+        l = f""
         if 'desc' in keyData and i < len(keyData['desc']):
             l = keyData['desc'][i]
         labels[i].text = f"{l:^7}"
@@ -86,7 +88,7 @@ def updateDisplay(index, title, labels):
             macropad.pixels[ki] = 0
             ki += 1
 
-    macropad.pixels.brightness = 0.25
+    macropad.pixels.brightness = 0.125/2
 
 
 mapping_index = 0
@@ -161,3 +163,4 @@ while True:
             # labels[key_event.key_number].text = ""
             labels[key_event.key_number].color = 0xFFFFFF
             labels[key_event.key_number].background_color = 0x0
+            

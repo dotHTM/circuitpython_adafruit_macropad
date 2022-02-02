@@ -1,5 +1,6 @@
 import storage
 
+import json
 
 settings = {}
 try:

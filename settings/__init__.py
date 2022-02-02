@@ -43,13 +43,11 @@ for key_data in mappings:
             ki += 1
 
     for ki in range(12):
-        if key_data["pixels"][ki] == None:
-            if key_data["keys"][ki] == '':
-                key_data["pixels"][ki] = Colors.black
-            else:
-                if "baseColor" in key_data:
-                    key_data["pixels"][ki] = mixColors(
-                        colorwheel(int(ki / 12 * 360)), key_data["baseColor"])
-                else:
-                    key_data["pixels"][ki] = mixColors(
-                        colorwheel(int(ki / 12 * 360)), Colors.black)
+        if key_data["keys"][ki] == '' or key_data["keys"][ki] == None:    
+            key_data["pixels"][ki] = Colors.black
+        else:
+            if key_data["pixels"][ki] == None:
+                key_data["pixels"][ki] = colorwheel(int(ki / 12 * 360))
+            if "baseColor" in key_data:
+                key_data["pixels"][ki] = mixColors( key_data["pixels"][ki] , key_data["baseColor"])
+                

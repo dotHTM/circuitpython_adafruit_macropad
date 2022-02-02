@@ -3,19 +3,24 @@ import math
 from rainbowio import colorwheel
 import adafruit_macropad
 
+
 class Notes():
+    semitone = 1.0595
+
     A = 440
-    As = A * 1.06
-    B = As * 1.06
-    C = B * 1.06
-    Cs = C * 1.06
-    D = Cs * 1.06
-    Ds = D * 1.06
-    E = Ds * 1.06
-    F = E * 1.06
-    Fs = F * 1.06
-    G = Fs * 1.06
-    Gs = G * 1.06
+    As = A * semitone
+    B = As * semitone
+    ## backsolve C, then the rest arise similarly
+    C = B * semitone / 2
+    Cs = C * semitone
+    D = Cs * semitone
+    Ds = D * semitone
+    E = Ds * semitone
+    F = E * semitone
+    Fs = F * semitone
+    G = Fs * semitone
+    Gs = G * semitone
+
 
     base = 1
 
@@ -25,23 +30,43 @@ class Notes():
     e = base / 8
     s = base / 16
 
+    noteStack = []
+
     def __init__(self):
         super(Notes, self).__init__()
+
+    def note(n, o):
+        pass
 
 
 class MacroPad(adafruit_macropad.MacroPad):
     """docstring for MLCMacroPad"""
+    
+    
 
     _oldRotation = 0
     encoder_delta = 0
     encoder_direction = 0
     encoder_pressed = False
     encoder_released = True
+    
+    _hostConnected = None
 
     def __init__(self, aliveMessage=True):
         super(MacroPad, self).__init__()
         if aliveMessage:
             self.alive()
+
+    def hostConnected(self):
+        if self._hostConnected != None:
+            return self._hostConnected
+        
+        try:
+            self.keyboard._keyboard_device
+            self._hostConnected =  True
+        except Exception as e:
+            self._hostConnected =  False
+        return self.hostConnected()
 
     def dprint(self, *args):
         for l in args:
@@ -103,4 +128,3 @@ class MacroPad(adafruit_macropad.MacroPad):
 
 
 thisMacropad = MacroPad()
-
