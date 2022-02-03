@@ -1,8 +1,6 @@
 from colorsys import hsv_to_rgb
 
-from debugHelper import thisDebugPrinter, print, debugAnounce
 
-@debugAnounce
 def colorwheel(theta, saturation=1, value=1):
     try:
         return hsv_to_rgb(theta / 360, saturation, value)
@@ -10,7 +8,6 @@ def colorwheel(theta, saturation=1, value=1):
         return 0
 
 
-@debugAnounce
 def mixColors(a, b):
     try:
         c = []
