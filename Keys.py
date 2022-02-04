@@ -6,6 +6,9 @@ from Notes import Notes, note
 
 import time
 
+from KeyCodeMap import keycodeMap
+
+
 def noop(*args, **kwargs):
     pass
 
@@ -13,11 +16,11 @@ def noop(*args, **kwargs):
 class FunctionalKey():
 
     @staticmethod
-    def defaultOnUp():
+    def defaultUp():
         noop
 
     @staticmethod
-    def defaultOnDown():
+    def defaultDown():
         noop
 
     def __init__(self,
@@ -25,13 +28,13 @@ class FunctionalKey():
                  onUp=None,
                  desc=None,
                  color=Colors.black) -> None:
-        self.keyDown = self.defaultOnUp
-        self.keyUp = self.defaultOnDown
+        self.keyDown = self.defaultUp
+        self.keyUp = self.defaultDown
         if onDown != None:
             self.keyDown = onDown
         if onUp != None:
             self.keyUp = onUp
-        if desc == None :
+        if desc == None:
             desc = "?"
         self.desc = f"{desc:^7}"
         self._color = color
@@ -55,11 +58,37 @@ class FunctionalKey():
 
     def __repr__(self) -> str:
         return "<FunctionalKey>"
-    
+
     def label(self):
         return self.desc
 
+    @staticmethod
+    def HoldKeeb(keyboard, keyList, **kwargs):
+        # print(keyList)
+        if isinstance(keyList, str):
+            keyList = [keyList]
+        fkl = list( filter(lambda k: k in keycodeMap, keyList) )
+        keyCodeList = list(map(lambda k: keycodeMap[k], fkl))
+        # print(fkl)
+
+        desc = "+".join(list(fkl))
+        # print (desc)
+
+        def onDown():
+            for kc in keyCodeList:
+                keyboard.press(kc)
+            pass
+
+        def onUp():
+            for kc in reversed(keyCodeList):
+                keyboard.release(kc)
+            pass
+                    
+        return FunctionalKey( onDown= onDown, onUp= onUp, desc = desc, **kwargs)
+
+
 class LabelKey(FunctionalKey):
+
     def __repr__(self) -> str:
         return "<LabelKey>"
 
@@ -76,7 +105,7 @@ class TimeKey(LabelKey):
 
     def __repr__(self) -> str:
         return "<TimeKey>"
-        
+
     def label(self):
         (d, h, m, s) = self.time()
         return f"{d:02d}:{h:02d}:{m:02d}{s:02d}"
@@ -97,32 +126,37 @@ class TimeMinSecKey(TimeKey):
 
 
 class ToneKey(FunctionalKey):
-    
-    def __init__(self, *args, freq=None, note=None, octave=None, **kwargs) -> None:
+
+    def __init__(self,
+                 *args,
+                 freq=None,
+                 note=None,
+                 octave=None,
+                 **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        
+
         self.freq = freq
-        
+
     def __repr__(self) -> str:
         return f"<ToneKey({','.join([str(self.desc),str(self.freq)])})>"
-        
-    
+
+
 class BlinkyKey(FunctionalKey):
-    
-    def __init__(self, *args, phase=0, freq = 0.5, trigger = 0,  **kwargs) -> None:
+
+    def __init__(self, *args, phase=0, freq=0.5, trigger=0, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.phase = phase
         if freq == 0:
-            freq = 1/100
+            freq = 1 / 100
         self.freq = freq
         self.trigger = trigger
-    
+
     def color(self):
         x = time.monotonic()
-        n = math.sin(
-            ( x * 2* self.freq + self.phase / 180  ) * math.pi  ) 
-        
+        n = math.sin((x * 2 * self.freq + self.phase / 180) * math.pi)
+
         # print( x , n, self.freq)
         if self.trigger < n:
             return super().color()
         return Colors.black
+

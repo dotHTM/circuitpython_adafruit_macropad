@@ -12,19 +12,26 @@ import math
 
 from Pages import Page
 
+
+
 def mean(thisList):
     if len(thisList) != 0:
-        return sum(thisList)/len(thisList)
+        return sum(thisList) / len(thisList)
     return None
 
 def now():
     return time.monotonic()
 
 def now_ms():
-    return int(time.monotonic_ns()/1000)
+    return int(time.monotonic_ns() / 1000)
+
 
 class MacroPad(adafruit_macropad.MacroPad):
     """docstring for MLCMacroPad"""
+    
+    blankPage = Page()
+    pageStack = []
+    currentPage = None
 
     refreshSleep = 0.01
     lastTime = now_ms()
@@ -33,13 +40,12 @@ class MacroPad(adafruit_macropad.MacroPad):
     encoder_delta = 0
     encoder_direction = 0
     encoder_pressed = False
-    encoder_released = True
-    
+    encoder_released = False
 
     _hostConnected = None
-    
+
     idleStart = time.monotonic()
-    idleThreshold = 5
+    idleThreshold = 30
     idleSleeping = False
 
     def resetIdle(self):
@@ -50,30 +56,36 @@ class MacroPad(adafruit_macropad.MacroPad):
         delta = time.monotonic() - self.idleStart
         return delta
 
-    keyObjs = []
-    for i in range(12):
-        keyObjs.append(FunctionalKey(desc=f""))
+    # keyObjs = []
+    # for i in range(12):
+    #     keyObjs.append(FunctionalKey(desc=f""))
 
     keyStack = []
     main_group = None
-    
+
     toneStack = []
     playingTone = None
     
+    
+
     def toneUpdate(self):
-        newToneStack = list( filter(lambda e: isinstance(e, ToneKey),  self.keyStack ) )
-        
+        newToneStack = list(
+            filter(lambda e: isinstance(e, ToneKey), self.keyStack))
+
         self.toneChanged = False
         if self.toneStack != newToneStack:
             self.toneChanged = True
             self.toneStack = newToneStack
-        
+
         self.topToneStack = None
         if 0 < len(self.toneStack):
             self.topToneStack = self.toneStack[-1]
 
-    def __init__(self, aliveMessage=True):
+    def __init__(self, aliveMessage=True, brightness= 0.010):
         super(MacroPad, self).__init__()
+        if len(self.pageStack) == 0:
+            self.appendPage(self.blankPage)
+        self.setLEDBrightness( brightness )
         if aliveMessage:
             self.alive()
 
@@ -118,8 +130,6 @@ class MacroPad(adafruit_macropad.MacroPad):
         for note in song:
             (freq, duration) = note
             self.play_tone(freq, duration)
-            
-            
 
     def values(self):
         data = {
@@ -133,17 +143,20 @@ class MacroPad(adafruit_macropad.MacroPad):
         return data
         pass
 
-    def assignKey(self, index, key: FunctionalKey):
-        if 0 <= index and index < 12:
-            self.keyObjs[index] = key
+    # def assignKey(self, index, key: FunctionalKey):
+    #     if 0 <= index and index < 12:
+    #         self.keyObjs[index] = key
+
     
-    
-    def assignPage(self, newPage : Page):
-        self.currentTitle = newPage.title
-        for i in range(12):
-            self.evalKeyUp( self.keyObjs[i] )
-            self.assignKey( i, newPage.keyObjs[i] )
+
+    def assignPage(self, newPage: Page):
+        currentPage = newPage
         
+        
+    def appendPage(self, newPage: Page):
+        while self.blankPage in self.pageStack:
+            self.pageStack.remove(self.blankPage)
+        self.pageStack.append(newPage)
 
     def setupGridDisplay(self):
         self.main_group = displayio.Group()
@@ -186,30 +199,48 @@ class MacroPad(adafruit_macropad.MacroPad):
         window = 10
         if window < len(self.lagHist):
             del self.lagHist[0]
-        print(f"max={max(self.lagHist):<,.}\tmin={min(self.lagHist):<,.}\tavg{window}={int(mean(self.lagHist)):<,.}\t{delta=:<,.}")
-        self.lastTime = now_now        
-
+        print(
+            f"max={max(self.lagHist):<,.}\tmin={min(self.lagHist):<,.}\tavg{window}={int(mean(self.lagHist)):<,.}\t{delta=:<,.}"
+        )
+        self.lastTime = now_now
 
     def evalKeyDown(self, thisKey):
         self.keyStack.append(thisKey)
         if not self.idleSleeping:
             thisKey.keyDown()
-            
+
     def evalKeyUp(self, thisKey):
         while thisKey in self.keyStack:
             self.keyStack.remove(thisKey)
             if not self.idleSleeping:
                 thisKey.keyUp()
-        if len(self.keyStack) == 0:
-            self.resetIdle()
-        
+
+    sleepLEDBrightness = 0.01
+    wakeLEDBrightness = 0.5
+
+    def setLEDBrightness(self, newValue):
+        if newValue < 0:
+            newValue = 0
+        if 1 < newValue:
+            newValue = 1
+        self.wakeLEDBrightness = newValue
+        self.pixels.brightness = newValue
 
     def update(self):
         # self.analizeLag()
-        
+
         self.encoder_switch_debounced.update()
+
+        oldPressed = self.encoder_pressed
         self.encoder_pressed = self.encoder_switch_debounced.pressed
+
+        self.encoder_pressed_event = self.encoder_pressed and not oldPressed
+
+        oldReleased = self.encoder_released
         self.encoder_released = self.encoder_switch_debounced.released
+
+        self.encoder_released_event = self.encoder_released and not oldReleased
+
         current_encoder = self.encoder
         self.encoder_delta = self._oldRotation - current_encoder
         if 0 < self.encoder_delta:
@@ -221,25 +252,37 @@ class MacroPad(adafruit_macropad.MacroPad):
         self._oldRotation = current_encoder
 
     currentTitle = "Hello!"
+    mode = "key"
+    
+    keyPages = []
+    menuPages = []
 
     def keypadUpdate(self):
         self.update()
         
+        if self.currentPage == None:
+            self.currentPage = self.pageStack[0]
+
+        for condition in [self.encoder_direction != 0, self.encoder_pressed, self.keys.events, self.keyStack]:
+            if condition:
+                self.resetIdle()
+
         if self.main_group == None:
             self.setupGridDisplay()
-            
+
+        # update the Title bar
         titleColor = 0x0
         titleBackgroundColor = 0xFFFFFF
-        newTitleText = self.currentTitle
+        newTitleText = self.currentPage.title
         if self.idleSleeping:
             newTitleText = ""
-            if int(now())%2==0:
+            if int(now()) % 2 == 0:
                 newTitleText = "zzz"
             titleColor = 0xFFFFFF
             titleBackgroundColor = 0x0
-        
-        newTitleText = f"{newTitleText:^22}"
-        
+
+        newTitleText = f"{newTitleText:^21}"
+
         if self.title.text != newTitleText:
             self.title.text = newTitleText
         if self.title.color != titleColor:
@@ -247,12 +290,10 @@ class MacroPad(adafruit_macropad.MacroPad):
         if self.title.background_color != titleBackgroundColor:
             self.title.background_color = titleBackgroundColor
 
-
-
-            
+        # update the per-key data (labels, active, pixel values, etc)
         lc = 0
-        for thisKey in self.keyObjs:
-            
+        for thisKey in self.currentPage.keyObjs:
+
             l = self.labels[lc]
             newLabelText = thisKey.label()
             if l.text != newLabelText:
@@ -264,51 +305,59 @@ class MacroPad(adafruit_macropad.MacroPad):
                 if not isinstance(thisKey, LabelKey):
                     color = 0x0
                     background_color = 0xFFFFFF
-            
+
             if self.idleSleeping:
                 color = 0x0
                 background_color = 0x0
-                
+
             if l.color != color:
                 l.color = color
             if l.background_color != background_color:
                 l.background_color = background_color
-            
+
             p = self.pixels[lc]
             newColor = thisKey.color()
             if p != newColor:
                 self.pixels[lc] = newColor
             lc += 1
-            
-            
-        if self.encoder_direction != 0 :
-            self.resetIdle()
-        
-        
-        while self.keys.events:
-            key_event = self.keys.events.get()
-            kNumber = key_event.key_number
-            thisKey = self.keyObjs[kNumber]
-            if key_event.pressed:
-                # Add pressed key to the stack
-                self.evalKeyDown(thisKey)
+
+        if self.idleThreshold < self.idleTime():
+            self.idleSleeping = True
+            self.pixels.brightness = self.sleepLEDBrightness
+        else:
+            if self.pixels.brightness != self.wakeLEDBrightness:
+                self.pixels.brightness = self.wakeLEDBrightness
+
+        if self.mode == "menu":
+
+            if self.encoder_pressed:
+                self.mode = "key"
+                print("entering key mode")
             else:
-                # Remove released key from the stack
-                self.evalKeyUp(thisKey)
+                pass
 
-        if len(self.keyStack) == 0:
-            if self.idleThreshold < self.idleTime():
-                self.idleSleeping = True
+        elif self.mode == "key":
 
-        
-        ## Evaluate musical keys
-        self.toneUpdate()
-        if self.toneChanged and self.playingTone != self.topToneStack:
-            self.stop_tone()
-            self.playingTone = None
-            if self.topToneStack != None:
-                self.start_tone(self.topToneStack.freq)
-                self.playingTone = self.topToneStack
-        
-            
+            if self.encoder_pressed:
+                self.mode = "menu"
+                print("entering menu mode")
+            else:
+                while self.keys.events:
+                    key_event = self.keys.events.get()
+                    kNumber = key_event.key_number
+                    thisKey = self.currentPage.keyObjs[kNumber]
+                    if key_event.pressed:
+                        # Add pressed key to the stack
+                        self.evalKeyDown(thisKey)
+                    else:
+                        # Remove released key from the stack
+                        self.evalKeyUp(thisKey)
 
+                ## Evaluate musical keys
+                self.toneUpdate()
+                if self.toneChanged and self.playingTone != self.topToneStack:
+                    self.stop_tone()
+                    self.playingTone = None
+                    if self.topToneStack != None:
+                        self.start_tone(self.topToneStack.freq)
+                        self.playingTone = self.topToneStack
