@@ -1,12 +1,12 @@
 import time
 import math
 
-from Colors import Colors
+from Colors import Colors, textToHashedColor, mixColors
 from Notes import Notes, note
 
 import time
 
-from KeyCodeMap import keycodeMap
+from KeyCodeMap import keycodeMap, themeGroups
 
 
 def noop(*args, **kwargs):
@@ -63,17 +63,27 @@ class FunctionalKey():
         return self.desc
 
     @staticmethod
-    def HoldKeeb(keyboard, keyList, **kwargs):
-        # print(keyList)
+    def HoldKeeb(keyboard, keyList):
         if isinstance(keyList, str):
             keyList = [keyList]
         fkl = list( filter(lambda k: k in keycodeMap, keyList) )
         keyCodeList = list(map(lambda k: keycodeMap[k], fkl))
-        # print(fkl)
 
         desc = "+".join(list(fkl))
-        # print (desc)
 
+        color = 0        
+        for kc in keyCodeList:
+            for cat in themeGroups:
+                if kc in themeGroups[cat]:
+                    # print(textToHashedColor(cat))
+                    cc = textToHashedColor(cat)
+                    if color == 0:
+                        color = cc
+                    else:
+                        color = mixColors(color, cc)     
+        print(color)
+        
+        
         def onDown():
             for kc in keyCodeList:
                 keyboard.press(kc)
@@ -84,7 +94,7 @@ class FunctionalKey():
                 keyboard.release(kc)
             pass
                     
-        return FunctionalKey( onDown= onDown, onUp= onUp, desc = desc, **kwargs)
+        return FunctionalKey( onDown= onDown, onUp= onUp, desc = desc, color=color)
 
 
 class LabelKey(FunctionalKey):

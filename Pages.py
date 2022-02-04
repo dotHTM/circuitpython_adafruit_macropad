@@ -14,8 +14,6 @@ class Page():
         if 0 <= index and index < 12:
             self.keyObjs[index] = key
     
-
-
     @staticmethod
     def Pendulum():
         thisPage = Page(title="Pendulum")

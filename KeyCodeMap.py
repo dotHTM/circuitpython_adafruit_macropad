@@ -28,15 +28,25 @@ keycodeMap = {
     "Y": kc.Y,
     "Z": kc.Z,
     "ONE": kc.ONE,
+    "1": kc.ONE,
     "TWO": kc.TWO,
+    "2": kc.TWO,
     "THREE": kc.THREE,
+    "3": kc.THREE,
     "FOUR": kc.FOUR,
+    "4": kc.FOUR,
     "FIVE": kc.FIVE,
+    "5": kc.FIVE,
     "SIX": kc.SIX,
+    "6": kc.SIX,
     "SEVEN": kc.SEVEN,
+    "7": kc.SEVEN,
     "EIGHT": kc.EIGHT,
+    "8": kc.EIGHT,
     "NINE": kc.NINE,
+    "9": kc.NINE,
     "ZERO": kc.ZERO,
+    "0": kc.ZERO,
     "ENTER": kc.ENTER,
     "RETURN": kc.RETURN,
     "ESC": kc.ESCAPE,
@@ -74,10 +84,10 @@ keycodeMap = {
     "SCROLL_LOCK": kc.SCROLL_LOCK,
     "PAUSE": kc.PAUSE,
     "INSERT": kc.INSERT,
-    "HOME": kc.HOME,
-    "PAGE_UP": kc.PAGE_UP,
     "DELETE": kc.DELETE,
+    "HOME": kc.HOME,
     "END": kc.END,
+    "PAGE_UP": kc.PAGE_UP,
     "PAGE_DOWN": kc.PAGE_DOWN,
     "RIGHT_ARROW": kc.RIGHT_ARROW,
     "LEFT_ARROW": kc.LEFT_ARROW,
@@ -101,9 +111,9 @@ keycodeMap = {
     "KEYPAD_ZERO": kc.KEYPAD_ZERO,
     "KEYPAD_PERIOD": kc.KEYPAD_PERIOD,
     "KEYPAD_BACKSLASH": kc.KEYPAD_BACKSLASH,
+    "KEYPAD_EQUALS": kc.KEYPAD_EQUALS,
     "APPLICATION": kc.APPLICATION,
     "POWER": kc.POWER,
-    "KEYPAD_EQUALS": kc.KEYPAD_EQUALS,
     "F13": kc.F13,
     "F14": kc.F14,
     "F15": kc.F15,
@@ -130,7 +140,59 @@ keycodeMap = {
     "RIGHT_CONTROL": kc.RIGHT_CONTROL,
     "RIGHT_SHIFT": kc.RIGHT_SHIFT,
     "RIGHT_ALT": kc.RIGHT_ALT,
-    "RIGHT_GUI": kc.RIGHT_GUI,
+    "RIGHT_GUI": kc.RIGHT_GUI
 }
 for e in list(keycodeMap.keys()):
     keycodeMap[e.lower()] = keycodeMap[e]
+
+themeGroups = {
+    "movement": [kc.A, kc.W, kc.D, kc.S],
+    "alphas": [
+        kc.A, kc.B, kc.C, kc.D, kc.E, kc.F, kc.G, kc.H, kc.I, kc.J, kc.K, kc.L,
+        kc.M, kc.N, kc.O, kc.P, kc.Q, kc.R, kc.S, kc.T, kc.U, kc.V, kc.W, kc.X,
+        kc.Y, kc.Z
+    ],
+    "nums": [
+        kc.ONE, kc.TWO, kc.THREE, kc.FOUR, kc.FIVE, kc.SIX, kc.SEVEN, kc.EIGHT,
+        kc.NINE, kc.ZERO
+    ],
+    "punctuation": [
+        kc.MINUS, kc.EQUALS, kc.LEFT_BRACKET, kc.RIGHT_BRACKET, kc.BACKSLASH,
+        kc.POUND, kc.SEMICOLON, kc.QUOTE, kc.GRAVE_ACCENT, kc.COMMA, kc.PERIOD,
+        kc.FORWARD_SLASH
+    ],
+    "control": [
+        kc.ENTER, kc.RETURN, kc.ESCAPE, kc.ESCAPE, kc.BACKSPACE,
+        kc.PRINT_SCREEN, kc.SCROLL_LOCK, kc.PAUSE, kc.INSERT, kc.DELETE
+    ],
+    "whitespace": [kc.TAB, kc.SPACEBAR, kc.SPACE],
+    "shift": [
+        kc.CAPS_LOCK, kc.LEFT_CONTROL, kc.CONTROL, kc.LEFT_SHIFT, kc.SHIFT,
+        kc.LEFT_ALT, kc.ALT, kc.OPTION, kc.LEFT_GUI, kc.GUI, kc.WINDOWS,
+        kc.COMMAND, kc.RIGHT_CONTROL, kc.RIGHT_SHIFT, kc.RIGHT_ALT,
+        kc.RIGHT_GUI
+    ],
+    "function": [
+        kc.F1, kc.F2, kc.F3, kc.F4, kc.F5, kc.F6, kc.F7, kc.F8, kc.F9, kc.F10,
+        kc.F11, kc.F12
+    ],
+    "functionHigh": [
+        kc.F13, kc.F14, kc.F15, kc.F16, kc.F17, kc.F18, kc.F19, kc.F20, kc.F21,
+        kc.F22, kc.F23, kc.F24
+    ],
+    "direction": [
+        kc.HOME, kc.END, kc.PAGE_UP, kc.PAGE_DOWN, kc.RIGHT_ARROW,
+        kc.LEFT_ARROW, kc.DOWN_ARROW, kc.UP_ARROW
+    ],
+    "numpad": [
+        kc.KEYPAD_ONE, kc.KEYPAD_TWO, kc.KEYPAD_THREE, kc.KEYPAD_FOUR,
+        kc.KEYPAD_FIVE, kc.KEYPAD_SIX, kc.KEYPAD_SEVEN, kc.KEYPAD_EIGHT,
+        kc.KEYPAD_NINE, kc.KEYPAD_ZERO
+    ],
+    "numop": [
+        kc.KEYPAD_FORWARD_SLASH, kc.KEYPAD_ASTERISK, kc.KEYPAD_MINUS,
+        kc.KEYPAD_PLUS
+    ],
+    "numcontrol": [kc.KEYPAD_NUMLOCK, kc.KEYPAD_ENTER, kc.KEYPAD_EQUALS],
+    "numpunct": [kc.KEYPAD_PERIOD, kc.KEYPAD_BACKSLASH]
+}
