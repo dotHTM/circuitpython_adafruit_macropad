@@ -2,6 +2,15 @@ import builtins as __builtin__
 
 from time import monotonic
 
+
+
+import sys
+
+
+advanced_enable = "3.7" < sys.version 
+
+
+
 class DebugPrinter():
     enabled = False
     indentDepth = 0 
@@ -37,7 +46,13 @@ class DebugPrinter():
     def debugAnounce(self, fn):
         def inner(*args, **kwargs):
             if self.enabled:
-                self.print(">", str(fn))
+                fn_name = ''
+                try:
+                    fn_name = "=> "+fn.__name__
+                except:
+                    fn_name = "-> "+ re.sub( r".*function (.*) at.*" , r"\1", str(fn) )
+                
+                self.print(">", str(fn_name))
                 self.indent()
                 self.print(f"{args=}, {kwargs=}")
             r = fn(*args, **kwargs)

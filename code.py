@@ -1,27 +1,29 @@
-import storage
 
-from debugHelper import thisDebugPrinter, debugAnounce
-
-thisDebugPrinter.enabled = True
 import time
-from MacroPad import MacroPad
-from Keys import FunctionalKey, LabelKey, TimeKey, TimeHourKey, TimeMinSecKey, ToneKey, BlinkyKey
-from Notes import note
 from Colors import Colors
-from Pages import Page, KeyboardPage
+from TitledGridDisplay import TitledGridDisplay
+from debugHelper import thisDebugPrinter
+thisDebugPrinter.enabled = True
 
+from MacroPad import MacroPad
 
+from debugHelper import debugAnounce
+@debugAnounce
 def main():
-    macropad = MacroPad(brightness=0.01)
-    macropad.appendPage(
-        KeyboardPage.fromKeebList(keyboard=macropad.keyboard,
-                                  title="1337",
-                                  keebList=[["SHIFT",
-                                             "F"], 'A', 'Q', 'ESC', 'S', 'W',
-                                            'RETURN', 'D', 'E', 'SPACE', 'F', 'R']))
-    macropad.appendPage(Page.Pendulum())
+    macropad = MacroPad()
+    grid = TitledGridDisplay(macropad.display)
     while True:
-        macropad.keypadUpdate()
+        time.sleep(0.001)
+        macropad.update()
+        
+        grid.title.set("Hello there")
+        for k in range(12):
+            grid.labelTexts[k].set(f"k {k}")
+        
+        for k in macropad.keysPressed:
+            grid.labelTexts[k].set(time.monotonic())
+        
+        
 
 
 if __name__ == '__main__':
