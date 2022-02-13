@@ -1,8 +1,12 @@
+from time import monotonic, monotonic_ns
 import adafruit_macropad
 
 
-from adafruit_display_text import bitmap_label as label
-from Colors import Colors, colorwheel
+from Colors import Colors
+
+
+def timeFn():
+    return int(monotonic_ns()/ 1_000)
 
 
 class MacroPad(adafruit_macropad.MacroPad):
@@ -19,14 +23,28 @@ class MacroPad(adafruit_macropad.MacroPad):
     keysPressed = []
     
     _pixelColors = []
+    
+    new_keys_pressed = []
+    
+    key_held_start = []
+    sleeping = False
+    
+    idleStart = 0
+    def idleReset(self):
+        self.idleStart = monotonic()
+    def idleDelta(self):
+        return monotonic() - self.idleStart
+    sleepWait = 5
 
-    def __init__(self, aliveMessage=True, brightness=0.15):
+    def __init__(self, brightness=0.15):
         super(MacroPad, self).__init__()
+        self.idleReset()
         self.setLEDBrightness(brightness)
         for i in range(12):
             self._pixelColors.append(Colors.black)
             self.pixels[i] = Colors.black
-    
+            self.key_held_start.append(0)
+        
     def pixelColor(self, index, color):
         if index < len(self._pixelColors) and index < len(self.pixels):
             if self._pixelColors[index] != color:
@@ -39,7 +57,7 @@ class MacroPad(adafruit_macropad.MacroPad):
         try:
             self.keyboard._keyboard_device
             self._hostConnected = True
-        except Exception as e:
+        except:
             self._hostConnected = False
         return self.hostConnected()
 
@@ -52,6 +70,8 @@ class MacroPad(adafruit_macropad.MacroPad):
 
     def update(self):
         self.encoder_switch_debounced.update()
+
+        self.sleeping = True if self.sleepWait <= self.idleDelta() else False
 
         oldPressed = self.encoder_pressed
         self.encoder_pressed = self.encoder_switch_debounced.pressed
@@ -74,10 +94,25 @@ class MacroPad(adafruit_macropad.MacroPad):
         self._oldRotation = current_encoder
 
         while self.keys.events:
+            self.idleReset()
             key_event = self.keys.events.get()
-
+            
             if key_event.pressed:
+                self.new_keys_pressed = []
+                self.key_held_start[key_event.key_number] = timeFn()
+                self.new_keys_pressed.append(key_event.key_number)
                 self.keysPressed.append(key_event.key_number)
+                self.idleTimer = monotonic()
             else:
+                self.key_held_start[key_event.key_number] = 0
+
+                while key_event.key_number in self.new_keys_pressed:
+                    self.new_keys_pressed.remove(key_event.key_number)
                 while key_event.key_number in self.keysPressed:
                     self.keysPressed.remove(key_event.key_number)
+    
+    def keyHeldTime(self, index):
+        if index in self.keysPressed:
+            return timeFn() - self.key_held_start[index]
+        return 0
+    

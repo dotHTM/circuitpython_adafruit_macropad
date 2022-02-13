@@ -1,0 +1,8 @@
+{
+    // Install LSP-json to get validation and autocompletion in this file.
+    // "venvPath": ".",
+    // "venv": "myenv",
+    "reportMissingImports": false,
+    "reportMissingModuleSource": false,
+    "include": ["/Users/dothtm/Developer/circuit-py/downloads/adafruit-circuitpython-bundle-py-20220127/lib"]
+}

@@ -2,10 +2,19 @@ from colorsys import hsv_to_rgb
 
 
 def colorwheel(theta, saturation=1, value=1):
+
     try:
+
         return hsv_to_rgb(theta / 360, saturation, value)
+
     except:
         return 0
+
+
+def hexValue(colorTuple):
+    t = colorTuple
+    d = (t[0] * (256**2)) + (t[1] * 256) + t[2]
+    return hex(d).split("x")[-1]
 
 
 def mixColors(a, b):
@@ -19,6 +28,7 @@ def mixColors(a, b):
             return (a * b) % 0xFFFFFF
         except:
             return (0, 0, 0)
+
 
 class Colors():
     white = (255, 255, 255)
@@ -34,8 +44,6 @@ class Colors():
 
     yellow = (255, 255, 0)
     orange = (255, 128, 0)
-
-
 
 
 charValues = {
@@ -115,8 +123,9 @@ def myhash(plaintext):
         else:
             acc += 37
         acc = acc % 0xFFFFFF
-    
-    return acc 
+
+    return acc
+
 
 def textToHashedColor(text):
     return myhash(text)
